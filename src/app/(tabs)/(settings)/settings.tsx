@@ -22,14 +22,13 @@ import {
   toggleScreenshotPreventionFeature,
 } from "@/libs/screenshot_prevention";
 import { FontAwesome6 } from "@react-native-vector-icons/fontawesome6";
-import { drizzle } from "drizzle-orm/expo-sqlite";
 import { LinearGradient } from "expo-linear-gradient";
-import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 import { Card, Divider, List, Switch, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useDrizzleDatabase } from "@/db/provider";
 import PasscodesAutofillServiceModule from "../../../../modules/passcodes-autofill-service/src/PasscodesAutofillServiceModule";
 
 export default function SettingsScreen() {
@@ -50,15 +49,14 @@ export default function SettingsScreen() {
   );
 
   const theme = useTheme();
-  let db = useSQLiteContext();
-  const drizzleDb = drizzle(db);
+  let db = useDrizzleDatabase();
 
   async function handleImportPasswords() {
     let content = await getCSVPasswordString();
     let importPasswordList: PasswordCSVFormat[] =
       convertRawCSVToPasswords(content);
 
-    drizzleDb.transaction((tx) => {
+    db.transaction((tx) => {
       importPasswordList.forEach((importablePassword) => {
         tx.insert(passwords)
           .values({
@@ -74,9 +72,7 @@ export default function SettingsScreen() {
   }
 
   async function handleExportPasswords() {
-    const result: PasswordCSVFormat[] = await drizzleDb
-      .select()
-      .from(passwords);
+    const result: PasswordCSVFormat[] = await db.select().from(passwords);
 
     let content = await getGooglePasswordsCSVContent(result);
     sharePasswordAsCSV(content);

@@ -3,6 +3,7 @@ import PasswordFormCard, {
   usePasswordForm,
 } from "@/components/PasswordFormCard";
 import { useToast } from "@/contexts/ToastContext";
+import { useDrizzleDatabase } from "@/db/provider";
 
 import { passwords } from "@/db/schema";
 import { getScreenShotSecureScreen } from "@/libs/screenshot_prevention";
@@ -10,10 +11,8 @@ import { formatDate } from "@passcodes/passalgo";
 
 import FontAwesome6 from "@react-native-vector-icons/fontawesome6";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/expo-sqlite";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
-import { useSQLiteContext } from "expo-sqlite";
 
 import { useEffect, useState } from "react";
 import { Keyboard, ScrollView, TextInput } from "react-native";
@@ -24,8 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function PasswordDetailsScreen() {
   const { id } = useLocalSearchParams();
 
-  const db = useSQLiteContext();
-  const drizzleDb = drizzle(db);
+  const db = useDrizzleDatabase();
 
   const { state, setState, updateField } = usePasswordForm();
   const [isEditing, setIsEditing] = useState(false);
@@ -48,7 +46,7 @@ export default function PasswordDetailsScreen() {
   }
 
   async function loadAndRefreshPassword() {
-    const result = await drizzleDb
+    const result = await db
       .select()
       .from(passwords)
       .where(eq(passwords.id, Number(id)));
@@ -77,7 +75,7 @@ export default function PasswordDetailsScreen() {
     unfocusAllFields();
 
     try {
-      await drizzleDb
+      await db
         .update(passwords)
         .set({ ...state, updatedAt: new Date().toISOString() })
         .where(eq(passwords.id, Number(id)));
