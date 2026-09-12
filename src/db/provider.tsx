@@ -15,8 +15,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import migrations from "./drizzle/migrations";
 import * as schema from "./schema";
 
-export const DEFAULT_DATABASE_NAME = "master.db";
-
 type DrizzleDatabase = ReturnType<typeof drizzle>;
 
 const DrizzleDatabaseContext = createContext<DrizzleDatabase | undefined>(
